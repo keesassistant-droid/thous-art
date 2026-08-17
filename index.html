@@ -1,0 +1,1098 @@
+<title>thous-art</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f5f4f0;
+    --surface: #ffffff;
+    --ink: #2a241e;
+    --ink-muted: #7c7161;
+    --line: #e2d8c4;
+    --line-strong: #cabe9e;
+    --accent: #d65836;
+    --accent-strong: #ac4527;
+    --accent-ink: #fffaf7;
+    --accent-soft: #fbe3d7;
+    --focus: #3f496d;
+
+    --s-crimson: #860017;
+    --s-vermilion: #d65836;
+    --s-navy: #3f496d;
+    --s-skyteal: #377893;
+    --s-deepteal: #134443;
+    --s-forest: #1e3c1e;
+    --s-coral: #f08878;
+    --s-plum: #6f3150;
+
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    --radius: 18px;
+    --radius-sm: 10px;
+    --container: 1080px;
+  }
+
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 400; color: var(--ink); text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; }
+  img, svg { display: block; max-width: 100%; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  /* page headings are focused programmatically on navigation (for screen readers); tabindex="-1"
+     means a sighted keyboard user can never Tab to them, so the visible ring here is just noise */
+  [tabindex="-1"]:focus { outline: none; }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* Commission request sheet uses powder blue instead of the site's orange accent */
+  #page-request {
+    --accent: #7ab0c5;
+    --accent-strong: #377893;
+    --accent-soft: #e2eef2;
+    --accent-ink: #20323a;
+    --focus: #377893;
+  }
+
+  /* ---------- Commission request sheet (always animates, by design, even with reduced motion) ---------- */
+  /* Kept permanently in the layout (off-screen, invisible) instead of display:none, so the
+     browser never has to build/paint the sheet for the first time at the exact moment it
+     also needs to animate it in: that mismatch is what caused the janky first open. */
+  @keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes sheetOut { from { transform: translateY(0); } to { transform: translateY(100%); } }
+  #page-request {
+    position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow: hidden;
+    transform: translateY(100%); visibility: hidden; pointer-events: none;
+  }
+  #page-request.sheet-active {
+    visibility: visible; pointer-events: auto;
+    animation: sheetIn 380ms cubic-bezier(.22,.68,0,1.01) forwards;
+    animation-duration: 380ms !important;
+  }
+  #page-request.sheet-leaving {
+    visibility: visible; pointer-events: auto;
+    animation: sheetOut 300ms cubic-bezier(.5,0,.75,0) forwards;
+    animation-duration: 300ms !important;
+  }
+  .sheet-scroll { height: 100%; overflow-y: auto; overflow-x: hidden; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+  .sheet-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-block: 1.4rem 0.4rem; position: sticky; top: 0; background: var(--bg); z-index: 2;
+  }
+  .sheet-title { font-size: clamp(1.7rem, 4.2vw, 2.3rem); }
+  .sheet-close {
+    width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1px solid var(--line-strong);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; padding: 0;
+  }
+  .sheet-close:hover { background: var(--bg-soft); }
+
+  .wrap { max-width: var(--container); margin: 0 auto; padding-inline: clamp(1.1rem, 4vw, 2rem); }
+  .eyebrow {
+    font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.11em;
+    color: var(--accent-strong); font-weight: 600; margin: 0 0 0.6rem;
+  }
+  .section-head { max-width: 44rem; margin-bottom: clamp(1.5rem, 4vw, 2.4rem); }
+  .section-head h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); margin-bottom: 0.6rem; }
+  .section-head .lede { color: var(--ink-muted); font-size: 1.02rem; max-width: 38rem; }
+  .plain-heading { font-size: clamp(1.9rem, 4.4vw, 2.8rem); font-weight: 700; margin-bottom: clamp(1.4rem, 4vw, 2.2rem); }
+  section.block { padding-block: clamp(2.6rem, 7vw, 4.4rem); }
+
+  /* ---------- Header ---------- */
+  header.site {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .header-bar {
+    display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between;
+    gap: 0.5rem 1.2rem; padding-block: 0.85rem;
+  }
+  .brand { text-decoration: none; display: flex; align-items: baseline; gap: 0.5rem; flex-shrink: 0; }
+  .brand-word {
+    font-family: var(--font-body); font-weight: 600; font-size: 1.3rem; color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+  .site-nav {
+    display: flex; align-items: center; gap: 0.35rem;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    max-width: 100%; flex-shrink: 1; min-width: 0;
+  }
+  .site-nav::-webkit-scrollbar { display: none; }
+  .nav-link {
+    text-decoration: none; white-space: nowrap; font-size: 0.92rem; font-weight: 500;
+    color: var(--ink-muted); padding: 0.5rem 0.8rem; border-radius: 999px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+  .nav-link:hover { color: var(--ink); background: var(--bg-soft); }
+  .nav-link[aria-current="page"] { color: var(--ink); background: var(--bg-soft); }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    border: none; border-radius: 999px; padding: 0.85rem 1.6rem; font-size: 0.98rem; font-weight: 600;
+    cursor: pointer; text-decoration: none; transition: transform 0.15s ease, background-color 0.15s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
+  .btn-ghost:hover { background: var(--bg-soft); }
+  .btn-block { width: 100%; }
+  .btn.is-incomplete { opacity: 0.45; cursor: not-allowed; }
+  .btn-organic {
+    border-radius: 63% 37% 54% 46% / 43% 65% 35% 57%;
+    transition: border-radius 0.4s ease, transform 0.15s ease, background-color 0.15s ease;
+  }
+  .btn-organic:hover { border-radius: 46% 54% 37% 63% / 57% 35% 65% 43%; }
+  /* scroll-linked colour must hard-cut, not fade: override the generic .btn transition */
+  .btn[data-scroll-accent] { transition: border-radius 0.4s ease, transform 0.15s ease; }
+
+  /* ---------- Dot divider (paint dabs) ---------- */
+  .dot-divider { display: flex; justify-content: center; gap: 0.55rem; padding-block: 0.4rem; }
+  .dot-divider span { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ---------- Placeholder art blocks ---------- */
+  .ph {
+    position: relative; border-radius: 0; border: 1px dashed var(--line-strong);
+    background: linear-gradient(160deg, var(--bg-soft), var(--surface));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.5rem; color: var(--ink-muted); overflow: hidden; width: 100%;
+  }
+  .ph svg { width: 30px; height: 30px; opacity: 0.55; }
+  .ph-label { font-size: 0.72rem; letter-spacing: 0.03em; text-align: center; padding-inline: 0.8rem; }
+  .ph--square { aspect-ratio: 1 / 1; }
+  .ph--portrait { aspect-ratio: 4 / 5; }
+  .ph--tall { aspect-ratio: 3 / 4; }
+  .ph--wide { aspect-ratio: 16 / 11; }
+
+  .hero-photo { width: 100%; }
+  .hero-photo img { width: 100%; height: auto; display: block; }
+
+  /* ---------- Photo frames (real images) ---------- */
+  .photo-frame { overflow: hidden; width: 100%; }
+  .photo-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; display: block; }
+  .photo-frame.ratio-square { aspect-ratio: 1 / 1; }
+  .photo-frame.ratio-portrait { aspect-ratio: 4 / 5; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding-block: clamp(1.8rem, 6vw, 3rem) clamp(2.2rem, 6vw, 3.4rem); }
+  .hero-inner {
+    max-width: 640px; margin-inline: auto; display: flex; flex-direction: column;
+    align-items: center; text-align: center; gap: 1.1rem;
+  }
+  .hero-brand { font-size: clamp(2.2rem, 7vw, 3.2rem); }
+  .hero-statement {
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(1.4rem, 4.2vw, 2rem);
+    line-height: 1.6; max-width: 34rem; text-wrap: balance;
+  }
+  .hero-caption { font-size: 0.95rem; color: var(--ink-muted); max-width: 30rem; }
+
+  /* ---------- Card grids ---------- */
+  .card-grid { display: grid; grid-template-columns: 1fr; gap: 1.4rem; }
+  @media (min-width: 640px) { .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 640px) and (max-width: 859px) { .card-grid.cols-3 { grid-template-columns: repeat(2, 1fr); } }
+
+  .art-card { display: flex; flex-direction: column; gap: 0.7rem; }
+  .art-card-media { position: relative; }
+  .art-card-media img { width: 100%; height: auto; display: block; }
+  .art-card h3 { font-size: 1.05rem; margin-bottom: 0.15rem; }
+  .art-card .meta { font-size: 0.86rem; color: var(--ink-muted); }
+  .price-tag {
+    display: inline-block; margin-top: 0.3rem; font-size: 0.78rem; font-weight: 600;
+    color: var(--accent-strong); text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .sold-ribbon {
+    position: absolute; top: 0.8rem; right: 0.8rem; background: var(--ink); color: var(--bg);
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.35rem 0.65rem; border-radius: 999px;
+  }
+  .art-card.is-sold { cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease; border-radius: var(--radius-sm); }
+  .art-card.is-sold:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.14); }
+  .art-card.is-sold:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+  .sold-view-hint {
+    position: absolute; left: 0.8rem; bottom: 0.8rem; background: rgba(255,255,255,0.92); color: var(--ink);
+    font-size: 0.72rem; font-weight: 600; padding: 0.35rem 0.65rem; border-radius: 999px;
+    display: flex; align-items: center; gap: 0.35rem;
+  }
+  .sold-view-hint svg { width: 13px; height: 13px; }
+
+  .masonry { columns: 1; column-gap: 1.4rem; }
+  @media (min-width: 640px) { .masonry { columns: 2; } }
+  @media (min-width: 900px) { .masonry { columns: 3; } }
+  .masonry .art-card { break-inside: avoid; margin-bottom: 1.4rem; display: inline-block; width: 100%; }
+
+  .section-link {
+    display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 1.6rem;
+    color: var(--accent-strong); font-weight: 600; text-decoration: none; font-size: 0.96rem;
+  }
+  .section-link:hover { text-decoration: underline; }
+
+  /* ---------- Steps ---------- */
+  .steps-grid { display: grid; grid-template-columns: 1fr; gap: 1.2rem; }
+  @media (min-width: 720px) { .steps-grid { grid-template-columns: repeat(3, 1fr); } }
+  .step-card {
+    display: flex; flex-direction: column; gap: 0.6rem; padding: 1.7rem 1.5rem;
+    border-radius: var(--radius); background: var(--bg-soft);
+  }
+  .step-num {
+    width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--accent-soft);
+    color: var(--accent-strong); font-family: var(--font-display); font-size: 1.2rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 0.2rem;
+  }
+  .step-card h3 { font-size: 1.14rem; color: var(--ink); }
+  .step-card p { color: var(--ink-muted); font-size: 0.95rem; }
+
+  /* ---------- About preview / page ---------- */
+  .bio p + p { margin-top: 0.85rem; }
+  .bio { color: var(--ink); max-width: 38rem; margin-bottom: 2.4rem; }
+  .about-stack { display: flex; flex-direction: column; gap: 1.4rem; }
+  .about-stack figure { margin: 0; }
+
+  /* ---------- Contact card ---------- */
+  .contact-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: clamp(1.3rem, 4vw, 1.8rem); display: flex; flex-direction: column; gap: 0.9rem;
+  }
+  .contact-card h3 { font-size: 1.15rem; }
+  .contact-rows { display: flex; flex-direction: column; gap: 0.5rem; }
+  .contact-row { display: flex; gap: 0.5rem; font-size: 0.95rem; align-items: baseline; flex-wrap: wrap; }
+  .contact-row .k { color: var(--ink-muted); min-width: 5.2rem; }
+  .fill-in {
+    color: var(--ink-muted); border-bottom: 1px dashed var(--line-strong); font-style: italic;
+  }
+
+  /* ---------- Lightbox ---------- */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 300; background: rgba(20, 16, 10, 0.86);
+    display: flex; align-items: center; justify-content: center; padding: 1.2rem;
+  }
+  .lightbox[hidden] { display: none; }
+  .lightbox-panel {
+    background: var(--surface); width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto;
+    border-radius: var(--radius); padding: clamp(1.2rem, 4vw, 1.8rem); position: relative;
+    animation: lightboxIn 220ms ease-out;
+  }
+  @keyframes lightboxIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+  .lightbox-close {
+    position: absolute; top: 1rem; right: 1rem; width: 2.2rem; height: 2.2rem; border-radius: 50%;
+    border: 1px solid var(--line-strong); background: var(--surface); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lightbox-close:hover { background: var(--bg-soft); }
+  .lightbox-title { font-size: 1.4rem; padding-right: 2.4rem; }
+  .lightbox-desc { color: var(--ink-muted); margin-top: 0.5rem; }
+  .lightbox-scroll {
+    display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.2rem;
+  }
+  .lightbox-scroll .lightbox-img-wrap { position: relative; }
+  .lightbox-scroll img {
+    max-width: 100%; width: auto; height: auto; margin-inline: auto;
+    border-radius: var(--radius-sm); display: block;
+  }
+  .lightbox-main-badge {
+    position: absolute; left: 0.7rem; top: 0.7rem; background: rgba(255, 255, 255, 0.92); color: var(--ink);
+    font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 999px;
+    display: flex; align-items: center; gap: 0.3rem;
+  }
+  .lightbox-main-badge svg { width: 12px; height: 12px; }
+
+  /* ---------- Forms ---------- */
+  .field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.1rem; }
+  .field label { font-size: 0.86rem; font-weight: 600; }
+  .field .hint { font-size: 0.8rem; color: var(--ink-muted); font-weight: 400; }
+  .field input, .field textarea {
+    font: inherit; padding: 0.75rem 0.9rem; border-radius: var(--radius-sm); border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink); width: 100%;
+  }
+  .field textarea { min-height: 6rem; resize: vertical; }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); }
+  .field-row { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 620px) { .field-row.two { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- Configurator ---------- */
+  .configurator {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: clamp(1.4rem, 4vw, 2.2rem);
+    overflow-x: hidden; touch-action: pan-y;
+  }
+  .config-question { font-size: 1.1rem; font-family: var(--font-display); margin-bottom: 1rem; }
+  .pill-choice { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+  .pill-btn {
+    border: 1px solid var(--line-strong); background: var(--bg-soft); border-radius: 999px;
+    padding: 0.75rem 1.3rem; cursor: pointer; font-weight: 600; font-size: 0.95rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+  .pill-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+  .config-panel { margin-top: 1.8rem; padding-top: 1.8rem; border-top: 1px solid var(--line); }
+  .config-step-label { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); margin-bottom: 0.7rem; }
+
+  .config-substep { animation: substepIn 260ms ease-out; }
+  .config-substep + .config-substep { margin-top: 1.8rem; padding-top: 1.8rem; border-top: 1px solid var(--line); }
+  @keyframes substepIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .config-submit-bar {
+    position: sticky; bottom: 0; margin-top: 1.8rem; padding-top: 1rem; padding-bottom: 0.2rem;
+    background: var(--surface); border-top: 1px solid var(--line);
+  }
+
+  .size-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  @media (min-width: 560px) { .size-grid { grid-template-columns: repeat(4, 1fr); } }
+  .size-card {
+    border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--bg-soft);
+    padding: 0.9rem 0.7rem; text-align: center; cursor: pointer;
+  }
+  .size-card .name { font-weight: 700; display: block; }
+  .size-card .dim { font-size: 0.82rem; color: var(--ink-muted); display: block; margin-top: 0.15rem; }
+  .size-card[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+
+  .swatch-grid { display: flex; flex-wrap: wrap; gap: 0.8rem; touch-action: pan-y; }
+  .swatch-btn {
+    width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
+    position: relative; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+  }
+  .swatch-btn[aria-pressed="true"] { border-color: var(--ink); }
+  .swatch-btn[aria-pressed="true"]::after {
+    content: "✓"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1rem; text-shadow: 0 0 3px rgba(0,0,0,0.5);
+  }
+  .config-confirm { text-align: left; }
+  .config-confirm h3 { font-size: 1.3rem; margin-bottom: 0.6rem; }
+  .config-confirm p { color: var(--ink-muted); max-width: 32rem; }
+  .config-confirm .btn { margin-top: 1.3rem; }
+
+  [hidden] { display: none !important; }
+
+  /* ---------- Footer ---------- */
+  footer.site-footer { border-top: 1px solid var(--line); background: var(--bg); }
+  .footer-simple { display: flex; align-items: center; justify-content: space-between; padding-block: 1.6rem; }
+  .footer-instagram { text-decoration: none; font-size: 0.92rem; }
+</style>
+
+<header class="site">
+  <div class="wrap header-bar">
+    <a class="brand" href="#/">
+      <span class="brand-word">thous&bull;art</span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a class="nav-link" data-page="sold" href="#/sold">Sold</a>
+      <a class="nav-link" data-page="for-sale" href="#/for-sale">For Sale</a>
+      <a class="nav-link" data-page="commissions" href="#/commissions">Commissions</a>
+      <a class="nav-link" data-page="about" href="#/about">About Me</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= HOME ================= -->
+  <section class="page" id="page-home" data-page="home">
+
+    <div class="wrap hero">
+      <div class="hero-inner">
+        <h1 class="hero-brand brand-word" tabindex="-1">thous&bull;art</h1>
+        <div class="hero-photo" data-photo="header" data-alt="thous-art standing in front of one of her paintings"></div>
+        <p class="hero-statement">This is a placeholder for a description what thous art is and what your work is about.</p>
+        <p class="hero-caption">Looking for a specific painting, or not sure exactly what you want yet? Request a commission and I'll reach out so we can work it out together.</p>
+        <a class="btn btn-primary btn-block btn-organic" href="#/request" data-scroll-accent>Commission request</a>
+      </div>
+    </div>
+
+    <div class="dot-divider" data-dots="5" aria-hidden="true"></div>
+
+    <section class="block" id="home-sold">
+      <div class="wrap">
+        <h2 class="plain-heading">Sold</h2>
+        <div class="card-grid cols-3" data-gallery="sold-preview"></div>
+        <a class="section-link" href="#/sold">See more sold work →</a>
+      </div>
+    </section>
+
+    <div class="dot-divider" data-dots="3" aria-hidden="true"></div>
+
+    <section class="block" id="home-for-sale">
+      <div class="wrap">
+        <h2 class="plain-heading">For sale</h2>
+        <div class="card-grid cols-3" data-gallery="for-sale-preview"></div>
+        <a class="section-link" href="#/for-sale">View all for sale →</a>
+      </div>
+    </section>
+
+    <div class="dot-divider" data-dots="3" aria-hidden="true"></div>
+
+    <section class="block" id="home-how">
+      <div class="wrap">
+        <h2 class="plain-heading">How a commission works</h2>
+        <div class="steps-grid" data-steps></div>
+        <a class="section-link" href="#/commissions">Commissions →</a>
+      </div>
+    </section>
+
+    <div class="dot-divider" data-dots="3" aria-hidden="true"></div>
+
+    <section class="block" id="home-about">
+      <div class="wrap">
+        <h2 class="plain-heading">About me</h2>
+        <p class="lede" style="margin-bottom: 1.2rem; color: var(--ink-muted);">A short introduction to thous-art and how the work comes together. The full story lives on the About page.</p>
+        <a class="section-link" href="#/about" style="margin-top:0;">About me →</a>
+      </div>
+    </section>
+
+  </section>
+
+  <!-- ================= FOR SALE ================= -->
+  <section class="page" id="page-for-sale" data-page="for-sale" hidden>
+    <section class="block">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Available now</p>
+          <h1 tabindex="-1" style="font-size: clamp(1.9rem, 4.6vw, 2.7rem); margin-bottom: 0.7rem;">For sale</h1>
+          <p class="lede">Original paintings, ready to ship. Prices are available on request, so get in touch below and I'll tell you more about a piece, sizing and shipping.</p>
+        </div>
+        <div class="masonry" data-gallery="for-sale-full"></div>
+      </div>
+    </section>
+    <section class="block" style="padding-top: 0;">
+      <div class="wrap" id="contact-strip" data-contact-heading="Interested in a piece?" data-contact-body="Tell me which one caught your eye and I'll get back to you with price and shipping."></div>
+    </section>
+  </section>
+
+  <!-- ================= SOLD ================= -->
+  <section class="page" id="page-sold" data-page="sold" hidden>
+    <section class="block">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Found a home</p>
+          <h1 tabindex="-1" style="font-size: clamp(1.9rem, 4.6vw, 2.7rem); margin-bottom: 0.7rem;">Sold</h1>
+          <p class="lede">A look at paintings that have already found their place. Fancy something similar? Commissions are always open.</p>
+        </div>
+        <div class="masonry" data-gallery="sold-full"></div>
+        <a class="section-link" href="#/request">Want something similar? Start a commission →</a>
+      </div>
+    </section>
+  </section>
+
+  <!-- ================= COMMISSIONS (info page) ================= -->
+  <section class="page" id="page-commissions" data-page="commissions" hidden>
+    <section class="block">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Commissions</p>
+          <h1 tabindex="-1" style="font-size: clamp(1.9rem, 4.6vw, 2.7rem); margin-bottom: 0.7rem;">How a commission works</h1>
+          <p class="lede">A one-of-a-kind painting, made for you. Here's how it works, and how to get started.</p>
+        </div>
+        <div class="steps-grid" data-steps style="margin-bottom: 2rem;"></div>
+        <a class="btn btn-primary btn-organic" href="#/request" data-scroll-accent>Request a commission</a>
+      </div>
+    </section>
+  </section>
+
+  <!-- ================= REQUEST (sheet) ================= -->
+  <section class="page" id="page-request" data-page="request">
+    <div class="sheet-scroll">
+    <div class="wrap sheet-header">
+      <h1 tabindex="-1" class="sheet-title">Request a commission</h1>
+      <button type="button" class="sheet-close" data-close-sheet aria-label="Close and return to home">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+
+    <section class="block" style="padding-top: 0.5rem;">
+      <div class="wrap">
+        <div class="configurator">
+
+          <div data-config-step="branch">
+            <p class="config-question">Do you already have an idea of what you want?</p>
+            <div class="pill-choice">
+              <button type="button" class="pill-btn" data-branch-choice="yes" aria-pressed="false">Yes, I have an idea</button>
+              <button type="button" class="pill-btn" data-branch-choice="no" aria-pressed="false">Not yet, help me figure it out</button>
+            </div>
+          </div>
+
+          <form class="config-panel" data-panel="no" hidden>
+            <p style="color: var(--ink-muted); margin-bottom: 1.2rem;">No worries, tell me a little about yourself and what draws you to a painting, and I'll reach out to help shape an idea together.</p>
+            <div class="field-row two">
+              <div class="field">
+                <label for="no-name">Name</label>
+                <input id="no-name" type="text" required autocomplete="name">
+              </div>
+              <div class="field">
+                <label for="no-email">Email</label>
+                <input id="no-email" type="email" required autocomplete="email">
+              </div>
+            </div>
+            <div class="field">
+              <label for="no-phone">Phone number (for WhatsApp)</label>
+              <input id="no-phone" type="tel" required autocomplete="tel" placeholder="+31 6 12345678">
+            </div>
+            <div class="field">
+              <label for="no-message">What are you drawn to? <span class="hint">(optional)</span></label>
+              <textarea id="no-message" placeholder="A place, a feeling, a colour you love. Anything helps."></textarea>
+            </div>
+            <div class="config-submit-bar">
+              <button type="submit" class="btn btn-primary btn-block">Send</button>
+            </div>
+          </form>
+
+          <form class="config-panel" data-panel="yes" hidden>
+            <div class="config-substep" data-substep="size">
+              <div class="config-step-label">Preferred size</div>
+              <div class="size-grid" data-size-grid></div>
+            </div>
+
+            <div class="config-substep" data-substep="concept" hidden>
+              <div class="config-step-label">The concept</div>
+              <div class="field">
+                <label for="yes-concept" style="font-weight: 400;">Describe the idea, mood or story you'd like the painting to capture</label>
+                <textarea id="yes-concept" required placeholder="E.g. our first apartment, seen from the street where we always parked the bikes..."></textarea>
+              </div>
+            </div>
+
+            <div class="config-substep" data-substep="colors" hidden>
+              <div class="config-step-label">Preferred colours</div>
+              <p style="font-size: 0.86rem; color: var(--ink-muted); margin-bottom: 0.8rem;">Pick as many as you like. Happy to advise too.</p>
+              <div class="swatch-grid" data-swatch-grid></div>
+            </div>
+
+            <div class="config-substep" data-substep="details" hidden>
+              <div class="config-step-label">Your details</div>
+              <div class="field-row two">
+                <div class="field">
+                  <label for="yes-name">Name</label>
+                  <input id="yes-name" type="text" required autocomplete="name">
+                </div>
+                <div class="field">
+                  <label for="yes-email">Email</label>
+                  <input id="yes-email" type="email" required autocomplete="email">
+                </div>
+              </div>
+              <div class="field">
+                <label for="yes-phone">Phone number (for WhatsApp)</label>
+                <input id="yes-phone" type="tel" required autocomplete="tel" placeholder="+31 6 12345678">
+              </div>
+              <p style="font-size: 0.86rem; color: var(--ink-muted);">Once I have this, I'll get back to you to talk through size, concept, colours and price in more detail.</p>
+            </div>
+
+            <div class="config-submit-bar">
+              <button type="submit" class="btn btn-primary btn-block">Send request</button>
+            </div>
+          </form>
+
+          <div class="config-confirm" data-config-confirm hidden>
+            <h3>Thanks, that's on its way.</h3>
+            <p>I'll get back to you soon by email or WhatsApp.</p>
+            <div class="contact-rows" style="margin-top: 1rem;">
+              <p class="contact-row"><span class="k">Email</span><span class="fill-in">add email address</span></p>
+            </div>
+            <button type="button" class="btn btn-ghost" data-config-reset>Start over</button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+    </div>
+  </section>
+
+  <!-- ================= ABOUT ================= -->
+  <section class="page" id="page-about" data-page="about" hidden>
+    <section class="block">
+      <div class="wrap">
+        <h1 tabindex="-1" style="font-size: clamp(1.9rem, 4.6vw, 2.7rem); margin-bottom: 1.4rem;">About Me</h1>
+        <div class="bio">
+          <p>thous-art paints in bold, saturated colour. Places and moments rendered so they feel warmer and louder than memory usually allows. Every piece starts as a conversation before it becomes a brushstroke.</p>
+          <p>Based wherever the current commission takes it, thous-art works across sizes and surfaces, from small studies to statement pieces made for a specific wall.</p>
+        </div>
+        <div class="about-stack">
+          <figure class="photo-frame ratio-portrait" data-photo="aboutPortrait" data-alt="Portrait of thous-art holding a finished painting"></figure>
+          <figure class="photo-frame ratio-portrait" data-photo="aboutStudio" data-alt="thous-art painting at her easel in the studio"></figure>
+          <figure class="photo-frame ratio-portrait" data-photo="aboutBike" data-alt="thous-art delivering a finished painting by bike"></figure>
+        </div>
+      </div>
+    </section>
+    <section class="block" style="padding-top: 0;">
+      <div class="wrap">
+        <div id="about-contact" data-contact-heading="Have an idea?" data-contact-body="Get in touch directly, or head straight to the commission form."></div>
+        <a class="section-link" href="#/request">Start a commission →</a>
+      </div>
+    </section>
+  </section>
+
+</main>
+
+<div class="lightbox" id="lightbox" hidden>
+  <div class="lightbox-panel">
+    <button type="button" class="lightbox-close" data-lightbox-close aria-label="Close">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <h3 class="lightbox-title" data-lightbox-title></h3>
+    <p class="lightbox-desc fill-in" data-lightbox-desc></p>
+    <div class="lightbox-scroll" data-lightbox-scroll></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap footer-simple">
+    <span class="brand-word">thous&bull;art</span>
+    <a class="footer-instagram fill-in" href="#" data-no-route>Instagram</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var PALETTE = [
+    { name: "Crimson", hex: "#860017" },
+    { name: "Vermilion", hex: "#d65836" },
+    { name: "Rust", hex: "#b04723" },
+    { name: "Coral", hex: "#f08878" },
+    { name: "Rose", hex: "#a75165" },
+    { name: "Plum", hex: "#6f3150" },
+    { name: "Navy", hex: "#3f496d" },
+    { name: "Cobalt", hex: "#1d4268" },
+    { name: "Sky Teal", hex: "#377893" },
+    { name: "Powder Blue", hex: "#7ab0c5" },
+    { name: "Deep Teal", hex: "#134443" },
+    { name: "Forest", hex: "#1e3c1e" }
+  ];
+
+  var IMG = {
+    header: "images/header-hero.jpg",
+    aboutPortrait: "images/about-portrait.jpg",
+    aboutStudio: "images/about-studio.jpg",
+    aboutBike: "images/about-bike.jpg",
+    brainwaves: "images/sold-brainwaves.jpg",
+    brainwaves2: "images/brainwaves2.jpg",
+    brainwaves3: "images/brainwaves3.jpg",
+    champagne: "images/sold-champagne.jpg",
+    champagne2: "images/champagne2.jpg",
+    champagne3: "images/champagne3.jpg",
+    champagne4: "images/champagne4.jpg",
+    stickynotes: "images/sold-stickynotes.jpg",
+    stickynotes2: "images/stickynotes2.jpg",
+    blueVelvet: "images/forsale-bluevelvet.jpg",
+    redVelvet: "images/forsale-redvelvet.jpg",
+    whiteNoise: "images/forsale-whitenoise.jpg"
+  };
+  var DIMS = {
+    header: [1100, 996],
+    aboutPortrait: [900, 1330],
+    aboutStudio: [900, 1363],
+    aboutBike: [900, 1372],
+    brainwaves: [900, 1285],
+    brainwaves2: [900, 1350],
+    brainwaves3: [900, 1239],
+    champagne: [900, 1206],
+    champagne2: [900, 1366],
+    champagne3: [900, 1379],
+    champagne4: [900, 1372],
+    stickynotes: [900, 1388],
+    stickynotes2: [900, 1366],
+    blueVelvet: [900, 1275],
+    redVelvet: [900, 1189],
+    whiteNoise: [900, 1348]
+  };
+
+  var ART_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2C8 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3-7-7-7z"/><circle cx="12" cy="9" r="2.2"/></svg>';
+  var PAINT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 100 18c1.1 0 2-.7 2-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H16a5 5 0 005-5c0-4.4-4-7-9-7z"/><circle cx="8.2" cy="10.5" r="1"/><circle cx="12" cy="8" r="1"/><circle cx="15.8" cy="10.5" r="1"/></svg>';
+
+  var FOR_SALE = [
+    { title: "Blue Velvet", photo: "blueVelvet" },
+    { title: "Red Velvet", photo: "redVelvet" },
+    { title: "White Noise", photo: "whiteNoise" }
+  ];
+  var SOLD = [
+    {
+      title: "Brainwaves", photo: "brainwaves",
+      gallery: ["brainwaves", "brainwaves2", "brainwaves3"],
+      description: "Add a short story about this piece: where it hung, who it was for, what inspired it."
+    },
+    {
+      title: "Champagne & Vongole", photo: "champagne",
+      gallery: ["champagne", "champagne2", "champagne3", "champagne4"],
+      description: "Add a short story about this piece: where it hung, who it was for, what inspired it."
+    },
+    {
+      title: "Colorful Sticky Notes", photo: "stickynotes",
+      gallery: ["stickynotes", "stickynotes2"],
+      description: "Add a short story about this piece: where it hung, who it was for, what inspired it."
+    }
+  ];
+  var STEPS = [
+    { title: "We discuss the concept", text: "Size, concept, colours and price. We figure it all out together first." },
+    { title: "I sketch the concept", text: "You'll see a rough concept sketch before a single drop of paint goes down." },
+    { title: "I paint it", text: "Once you approve the sketch, it becomes a full colour painting." }
+  ];
+  var SIZES = [
+    { name: "Small", dim: "30 × 40 cm" },
+    { name: "Medium", dim: "50 × 70 cm" },
+    { name: "Large", dim: "80 × 100 cm" },
+    { name: "Something else", dim: "I'll specify" }
+  ];
+
+  var VIEW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>';
+
+  function artCard(item, sold, index) {
+    var dim = item.photo ? DIMS[item.photo] : null;
+    var media = item.photo
+      ? '<img src="' + IMG[item.photo] + '" alt="' + item.title + '" loading="lazy" width="' + dim[0] + '" height="' + dim[1] + '">'
+      : '<div class="ph ' + item.ratio + '">' + ART_ICON + '<span class="ph-label">Photo coming soon</span></div>';
+    var metaHtml = item.meta ? '<p class="meta">' + item.meta + '</p>' : '';
+    var soldAttrs = sold ? ' tabindex="0" role="button" aria-haspopup="dialog" data-sold-index="' + index + '"' : '';
+    var viewHint = sold ? '<span class="sold-view-hint">' + VIEW_ICON + 'View</span>' : '';
+    return '<div class="art-card' + (sold ? ' is-sold' : '') + '"' + soldAttrs + '>' +
+      '<div class="art-card-media">' + media + viewHint +
+      (sold ? '<span class="sold-ribbon">Sold</span>' : '') + '</div>' +
+      '<h3>' + item.title + '</h3>' +
+      metaHtml +
+      (sold ? '' : '<span class="price-tag">Price on request</span>') +
+      '</div>';
+  }
+
+  function fillGalleries() {
+    var previewFS = FOR_SALE.slice(0, 3), previewSold = SOLD.slice(0, 3);
+    setHTML('[data-gallery="for-sale-preview"]', previewFS.map(function (i) { return artCard(i, false); }).join(""));
+    setHTML('[data-gallery="sold-preview"]', previewSold.map(function (i, idx) { return artCard(i, true, idx); }).join(""));
+    setHTML('[data-gallery="for-sale-full"]', FOR_SALE.map(function (i) { return artCard(i, false); }).join(""));
+    setHTML('[data-gallery="sold-full"]', SOLD.map(function (i, idx) { return artCard(i, true, idx); }).join(""));
+  }
+
+  var MAIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.6 6.6L21 10l-5 4.3L17.4 21 12 17.3 6.6 21 8 14.3 3 10l6.4-1.4z"/></svg>';
+
+  function openLightbox(item) {
+    var lb = document.getElementById('lightbox');
+    lb.querySelector('[data-lightbox-title]').textContent = item.title;
+    lb.querySelector('[data-lightbox-desc]').textContent = item.description;
+    lb.querySelector('[data-lightbox-scroll]').innerHTML = item.gallery.map(function (key, i) {
+      var d = DIMS[key];
+      var badge = i === 0 ? '<span class="lightbox-main-badge">' + MAIN_ICON + 'Main</span>' : '';
+      return '<div class="lightbox-img-wrap"><img src="' + IMG[key] + '" alt="' + item.title + '" loading="lazy" width="' + d[0] + '" height="' + d[1] + '">' + badge + '</div>';
+    }).join('');
+    lb.hidden = false;
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').hidden = true;
+  }
+
+  function setupLightbox() {
+    document.addEventListener('click', function (e) {
+      var card = e.target.closest('.art-card.is-sold');
+      if (card) {
+        openLightbox(SOLD[parseInt(card.getAttribute('data-sold-index'), 10)]);
+        return;
+      }
+      if (e.target.closest('[data-lightbox-close]')) { closeLightbox(); return; }
+      if (e.target.id === 'lightbox') { closeLightbox(); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closeLightbox(); return; }
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('is-sold')) {
+        e.preventDefault();
+        openLightbox(SOLD[parseInt(e.target.getAttribute('data-sold-index'), 10)]);
+      }
+    });
+  }
+
+  function setHTML(sel, html) {
+    document.querySelectorAll(sel).forEach(function (el) { el.innerHTML = html; });
+  }
+
+  function fillSteps() {
+    var html = STEPS.map(function (s, i) {
+      return '<div class="step-card"><div class="step-num">' + (i + 1) + '</div><h3>' + s.title + '</h3><p>' + s.text + '</p></div>';
+    }).join("");
+    setHTML('[data-steps]', html);
+  }
+
+  function fillContactCards() {
+    document.querySelectorAll('[data-contact-heading]').forEach(function (el) {
+      el.outerHTML = '<div class="contact-card" id="' + el.id + '">' +
+        '<h3>' + el.getAttribute('data-contact-heading') + '</h3>' +
+        '<p style="color:var(--ink-muted)">' + el.getAttribute('data-contact-body') + '</p>' +
+        '<div class="contact-rows">' +
+          '<p class="contact-row"><span class="k">Email</span><span class="fill-in">add email address</span></p>' +
+          '<p class="contact-row"><span class="k">Instagram</span><span class="fill-in">add Instagram handle</span></p>' +
+        '</div>' +
+      '</div>';
+    });
+  }
+
+  function fillPhotos() {
+    document.querySelectorAll('[data-photo]').forEach(function (el) {
+      var key = el.getAttribute('data-photo');
+      var dim = DIMS[key];
+      var alt = el.getAttribute('data-alt') || '';
+      var img = '<img src="' + IMG[key] + '" alt="' + alt + '" loading="lazy" width="' + dim[0] + '" height="' + dim[1] + '">';
+      if (el.tagName === 'FIGURE') {
+        el.innerHTML = img + '<figcaption>' + alt + '</figcaption>';
+      } else {
+        el.innerHTML = img;
+      }
+    });
+  }
+
+  function fillDots() {
+    document.querySelectorAll('.dot-divider').forEach(function (el) {
+      var n = parseInt(el.getAttribute('data-dots'), 10) || 3;
+      var picks = [];
+      for (var i = 0; i < n; i++) picks.push(PALETTE[Math.floor(i * PALETTE.length / n)]);
+      el.innerHTML = picks.map(function (c) { return '<span style="background:' + c.hex + '"></span>'; }).join('');
+    });
+  }
+
+  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  var EMAIL_RE = /\S+@\S+\.\S+/;
+
+  function formReady(kind) {
+    if (kind === 'yes') {
+      var sizeSelected = !!document.querySelector('.size-card[aria-pressed="true"]');
+      return sizeSelected && val('yes-concept').length > 0 && val('yes-name').length > 0 &&
+        EMAIL_RE.test(val('yes-email')) && val('yes-phone').length > 0;
+    }
+    return val('no-name').length > 0 && EMAIL_RE.test(val('no-email')) && val('no-phone').length > 0;
+  }
+
+  function updateSubmitState() {
+    ['no', 'yes'].forEach(function (kind) {
+      var form = document.querySelector('[data-panel="' + kind + '"]');
+      if (!form) return;
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn) btn.classList.toggle('is-incomplete', !formReady(kind));
+    });
+  }
+
+  function setupSizeGrid() {
+    var grid = document.querySelector('[data-size-grid]');
+    if (!grid) return;
+    grid.innerHTML = SIZES.map(function (s) {
+      return '<button type="button" class="size-card" aria-pressed="false" data-size="' + s.name + '">' +
+        '<span class="name">' + s.name + '</span><span class="dim">' + s.dim + '</span></button>';
+    }).join('');
+    grid.addEventListener('click', function (e) {
+      var btn = e.target.closest('.size-card');
+      if (!btn) return;
+      grid.querySelectorAll('.size-card').forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+      updateSubmitState();
+    });
+  }
+
+  function setupSwatches() {
+    var grid = document.querySelector('[data-swatch-grid]');
+    if (!grid) return;
+    grid.innerHTML = PALETTE.map(function (c) {
+      return '<button type="button" class="swatch-btn" style="background:' + c.hex + '" aria-pressed="false" data-color="' + c.hex + '" data-name="' + c.name + '" aria-label="' + c.name + '"></button>';
+    }).join('');
+    grid.addEventListener('click', function (e) {
+      var btn = e.target.closest('.swatch-btn');
+      if (!btn) return;
+      var pressed = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', pressed ? 'false' : 'true');
+    });
+  }
+
+  function setupConfigurator() {
+    var branchButtons = document.querySelectorAll('[data-branch-choice]');
+    var panelNo = document.querySelector('[data-panel="no"]');
+    var panelYes = document.querySelector('[data-panel="yes"]');
+    var branchStep = document.querySelector('[data-config-step="branch"]');
+    var confirm = document.querySelector('[data-config-confirm]');
+
+    branchButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        branchButtons.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+        var choice = btn.getAttribute('data-branch-choice');
+        panelNo.hidden = choice !== 'no';
+        panelYes.hidden = choice !== 'yes';
+        updateSubmitState();
+      });
+    });
+
+    function showConfirm() {
+      branchStep.hidden = true;
+      panelNo.hidden = true;
+      panelYes.hidden = true;
+      confirm.hidden = false;
+    }
+
+    [panelNo, panelYes].forEach(function (form) {
+      form.addEventListener('input', updateSubmitState);
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!formReady(form.getAttribute('data-panel'))) { updateSubmitState(); return; }
+        showConfirm();
+      });
+    });
+
+    document.querySelector('[data-config-reset]').addEventListener('click', function () {
+      confirm.hidden = true;
+      branchStep.hidden = false;
+      panelNo.hidden = true;
+      panelYes.hidden = true;
+      panelNo.reset();
+      panelYes.reset();
+      branchButtons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      document.querySelectorAll('.size-card').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      document.querySelectorAll('.swatch-btn').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      panelYes.querySelectorAll('.config-substep').forEach(function (el) {
+        el.hidden = el.getAttribute('data-substep') !== 'size';
+      });
+      updateSubmitState();
+    });
+
+    updateSubmitState();
+  }
+
+  function setupProgressiveReveal() {
+    var panel = document.querySelector('[data-panel="yes"]');
+    if (!panel) return;
+
+    function reveal(name, scroll) {
+      var el = panel.querySelector('[data-substep="' + name + '"]');
+      if (el && el.hidden) {
+        el.hidden = false;
+        if (scroll) {
+          requestAnimationFrame(function () {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          });
+        }
+      }
+    }
+
+    document.querySelector('[data-size-grid]').addEventListener('click', function (e) {
+      if (e.target.closest('.size-card')) reveal('concept', true);
+    });
+    var conceptField = document.getElementById('yes-concept');
+    function revealColorsAndDetails() {
+      if (conceptField.value.trim().length === 0) return;
+      // colours and details appear together so picking multiple colours never jumps the page
+      reveal('colors', true);
+      reveal('details', false);
+    }
+    conceptField.addEventListener('blur', revealColorsAndDetails);
+    conceptField.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        revealColorsAndDetails();
+      }
+    });
+  }
+
+  var PAGES = ['home', 'for-sale', 'sold', 'commissions', 'about', 'request'];
+
+  function showPage(id) {
+    if (PAGES.indexOf(id) === -1) id = 'home';
+    PAGES.forEach(function (p) {
+      if (p === 'request') return;
+      var section = document.getElementById('page-' + p);
+      if (section) section.hidden = p !== id;
+    });
+    var requestSection = document.getElementById('page-request');
+    if (id === 'request') {
+      requestSection.classList.remove('sheet-leaving');
+      requestSection.classList.add('sheet-active');
+    } else {
+      requestSection.classList.remove('sheet-active', 'sheet-leaving');
+    }
+    document.querySelectorAll('.nav-link').forEach(function (a) {
+      a.toggleAttribute('aria-current', a.getAttribute('data-page') === id);
+      if (a.getAttribute('data-page') === id) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    if (id !== 'request') { window.scrollTo(0, 0); }
+    var heading = document.querySelector('#page-' + id + ' h1');
+    if (heading) heading.focus({ preventScroll: true });
+  }
+
+  function routeFromHash() {
+    var id = location.hash.replace(/^#\/?/, '') || 'home';
+    showPage(id);
+  }
+
+  window.addEventListener('hashchange', routeFromHash);
+
+  document.querySelector('[data-close-sheet]').addEventListener('click', function () {
+    var section = document.getElementById('page-request');
+    section.classList.remove('sheet-active');
+    section.classList.add('sheet-leaving');
+    setTimeout(function () { location.hash = '#/'; }, 300);
+  });
+
+  document.querySelectorAll('[data-no-route]').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); });
+  });
+
+  document.querySelectorAll('.nav-link').forEach(function (a) {
+    a.addEventListener('click', function () { a.blur(); });
+  });
+
+  function hexToRgb(hex) {
+    var v = hex.replace('#', '');
+    return { r: parseInt(v.substring(0, 2), 16), g: parseInt(v.substring(2, 4), 16), b: parseInt(v.substring(4, 6), 16) };
+  }
+
+  function relLuminance(r, g, b) {
+    var a = [r, g, b].map(function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+  }
+
+  function setupScrollAccent() {
+    var buttons = document.querySelectorAll('[data-scroll-accent]');
+    if (!buttons.length) return;
+    var rgbPalette = PALETTE.map(function (c) { return hexToRgb(c.hex); });
+    var ticking = false;
+
+    var PX_PER_STEP = 50;
+
+    function update() {
+      var n = rgbPalette.length;
+      var scaled = Math.max(0, window.scrollY) / PX_PER_STEP;
+      var idx = Math.floor(scaled) % n;
+      var t = scaled - Math.floor(scaled);
+      var c1 = rgbPalette[idx];
+      var c2 = rgbPalette[(idx + 1) % n];
+      var r = c1.r + (c2.r - c1.r) * t;
+      var g = c1.g + (c2.g - c1.g) * t;
+      var b = c1.b + (c2.b - c1.b) * t;
+      var bg = 'rgb(' + Math.round(r) + ',' + Math.round(g) + ',' + Math.round(b) + ')';
+      var textColor = relLuminance(r, g, b) > 0.42 ? '#2a241e' : '#fffaf7';
+      buttons.forEach(function (btn) {
+        btn.style.backgroundColor = bg;
+        btn.style.color = textColor;
+      });
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', function () {
+      if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  }
+
+  fillGalleries();
+  fillSteps();
+  fillContactCards();
+  fillPhotos();
+  fillDots();
+  setupSizeGrid();
+  setupSwatches();
+  setupConfigurator();
+  setupProgressiveReveal();
+  setupLightbox();
+  setupScrollAccent();
+  routeFromHash();
+})();
+</script>
