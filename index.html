@@ -4,13 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>thous-art</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <style>
   :root {
-    --bg: #ffffff;
-    --bg-soft: #f5f4f0;
-    --surface: #ffffff;
+    --bg: #f8f4ec;
+    --bg-soft: #efe6d2;
+    --surface: #fffdf8;
     --ink: #2a241e;
     --ink-muted: #7c7161;
     --line: #e2d8c4;
@@ -30,8 +33,8 @@
     --s-coral: #f08878;
     --s-plum: #6f3150;
 
-    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
-    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-display: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-body: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
     --radius: 18px;
     --radius-sm: 10px;
@@ -145,6 +148,22 @@
   .nav-link:hover { color: var(--ink); background: var(--bg-soft); }
   .nav-link[aria-current="page"] { color: var(--ink); background: var(--bg-soft); }
 
+  .nav-toggle {
+    display: none; align-items: center; justify-content: center; width: 2.4rem; height: 2.4rem;
+    border-radius: 50%; border: 1px solid var(--line-strong); background: var(--surface);
+    cursor: pointer; flex-shrink: 0; padding: 0;
+  }
+  .nav-toggle:hover { background: var(--bg-soft); }
+  header.site.is-compact .nav-toggle { display: inline-flex; }
+  header.site.is-compact .site-nav {
+    display: none; position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 0.15rem; overflow-x: visible; max-width: none;
+    background: var(--bg); border-bottom: 1px solid var(--line);
+    padding: 0.6rem clamp(1.1rem, 4vw, 2rem) 1rem;
+  }
+  header.site.is-compact .site-nav.is-open { display: flex; }
+  header.site.is-compact .nav-link { text-align: left; }
+
   /* ---------- Buttons ---------- */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -201,8 +220,8 @@
   }
   .hero-brand { font-size: clamp(2.2rem, 7vw, 3.2rem); }
   .hero-statement {
-    font-family: var(--font-display); font-weight: 700; font-size: clamp(1.4rem, 4.2vw, 2rem);
-    line-height: 1.6; max-width: 34rem; text-wrap: balance;
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(2.8rem, 8.4vw, 4rem);
+    line-height: 2.2; max-width: 34rem; text-wrap: balance;
   }
   .hero-caption { font-size: 0.95rem; color: var(--ink-muted); max-width: 30rem; }
 
@@ -253,11 +272,19 @@
     display: flex; flex-direction: column; gap: 0.6rem; padding: 1.7rem 1.5rem;
     border-radius: var(--radius); background: var(--bg-soft);
   }
-  .step-num {
-    width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--accent-soft);
-    color: var(--accent-strong); font-family: var(--font-display); font-size: 1.2rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; margin-bottom: 0.2rem;
+  .step-blob {
+    width: 3.6rem; height: 3.6rem; border-radius: 63% 37% 54% 46% / 43% 65% 35% 57%;
+    color: #fffaf7; font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 0.3rem; flex-shrink: 0;
+    animation: blobMorph 7s ease-in-out infinite alternate;
   }
+  @keyframes blobMorph {
+    from { border-radius: 63% 37% 54% 46% / 43% 65% 35% 57%; }
+    to { border-radius: 42% 58% 63% 37% / 56% 38% 62% 44%; }
+  }
+  .step-card:nth-child(3n+1) .step-blob { background: var(--s-vermilion); }
+  .step-card:nth-child(3n+2) .step-blob { background: var(--s-navy); }
+  .step-card:nth-child(3n+3) .step-blob { background: var(--s-deepteal); }
   .step-card h3 { font-size: 1.14rem; color: var(--ink); }
   .step-card p { color: var(--ink-muted); font-size: 0.95rem; }
 
@@ -300,14 +327,35 @@
   .lightbox-close:hover { background: var(--bg-soft); }
   .lightbox-title { font-size: 1.4rem; padding-right: 2.4rem; }
   .lightbox-desc { color: var(--ink-muted); margin-top: 0.5rem; }
+  .lightbox-carousel { position: relative; margin-top: 1.2rem; }
   .lightbox-scroll {
-    display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.2rem;
+    display: flex; flex-direction: row; gap: 0.7rem;
+    overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scroll-padding-inline: 0.2rem;
+    padding-bottom: 0.4rem;
   }
-  .lightbox-scroll .lightbox-img-wrap { position: relative; }
+  .lightbox-scroll::-webkit-scrollbar { height: 6px; }
+  .lightbox-scroll::-webkit-scrollbar-track { background: transparent; }
+  .lightbox-scroll::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; }
+  .lightbox-scroll .lightbox-img-wrap {
+    position: relative; flex: 0 0 82%; scroll-snap-align: center;
+    aspect-ratio: 4 / 5; border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-soft);
+  }
+  @media (min-width: 640px) { .lightbox-scroll .lightbox-img-wrap { flex-basis: 62%; } }
   .lightbox-scroll img {
-    max-width: 100%; width: auto; height: auto; margin-inline: auto;
+    width: 100%; height: 100%; object-fit: cover; object-position: center 18%;
     border-radius: var(--radius-sm); display: block;
   }
+  .lightbox-fade {
+    position: absolute; top: 0; right: 0; bottom: 0.4rem; width: 2.4rem;
+    background: linear-gradient(to right, transparent, var(--surface));
+    pointer-events: none; opacity: 1; transition: opacity 0.2s ease;
+  }
+  .lightbox-fade.is-hidden { opacity: 0; }
+  .lightbox-dots { display: flex; justify-content: center; gap: 0.4rem; margin-top: 0.7rem; }
+  .lightbox-dots[hidden] { display: none; }
+  .lightbox-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); transition: background-color 0.2s ease, transform 0.2s ease; }
+  .lightbox-dot.is-active { background: var(--accent-strong); transform: scale(1.3); }
   .lightbox-main-badge {
     position: absolute; left: 0.7rem; top: 0.7rem; background: rgba(255, 255, 255, 0.92); color: var(--ink);
     font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 999px;
@@ -330,17 +378,33 @@
 
   /* ---------- Configurator ---------- */
   .configurator {
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    --wash: var(--s-vermilion);
+    background: color-mix(in srgb, var(--wash) 6%, var(--surface));
+    border: 1px solid var(--line); border-radius: var(--radius);
     padding: clamp(1.4rem, 4vw, 2.2rem);
     overflow-x: hidden; touch-action: pan-y;
+    transition: background-color 0.5s ease;
+  }
+
+  .paint-progress {
+    height: 8px; border-radius: 999px 999px 999px 40%; background: var(--line);
+    margin-bottom: clamp(1.4rem, 4vw, 2rem); overflow: hidden; position: relative;
+  }
+  .paint-progress .fill {
+    position: absolute; inset: 0; width: 6%;
+    background: linear-gradient(90deg, var(--s-crimson), var(--wash));
+    border-radius: inherit;
+    transition: width 0.5s cubic-bezier(.22,.68,0,1.01), background-color 0.5s ease;
   }
   .config-question { font-size: 1.1rem; font-family: var(--font-display); margin-bottom: 1rem; }
   .pill-choice { display: flex; flex-wrap: wrap; gap: 0.7rem; }
   .pill-btn {
-    border: 1px solid var(--line-strong); background: var(--bg-soft); border-radius: 999px;
-    padding: 0.75rem 1.3rem; cursor: pointer; font-weight: 600; font-size: 0.95rem;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
+    border: 1.5px solid var(--line-strong); background: var(--bg-soft);
+    border-radius: 63% 37% 54% 46% / 43% 65% 35% 57%;
+    padding: 0.8rem 1.4rem; cursor: pointer; font-weight: 600; font-size: 0.95rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease, border-radius 0.4s ease;
   }
+  .pill-btn:hover { border-radius: 46% 54% 37% 63% / 57% 35% 65% 43%; }
   .pill-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 
   .config-panel { margin-top: 1.8rem; padding-top: 1.8rem; border-top: 1px solid var(--line); }
@@ -358,18 +422,25 @@
   .size-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
   @media (min-width: 560px) { .size-grid { grid-template-columns: repeat(4, 1fr); } }
   .size-card {
-    border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--bg-soft);
-    padding: 0.9rem 0.7rem; text-align: center; cursor: pointer;
+    border: 1.5px solid var(--line-strong); background: var(--bg-soft);
+    border-radius: 63% 37% 54% 46% / 43% 65% 35% 57%;
+    padding: 1.1rem 0.8rem; text-align: center; cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, border-radius 0.4s ease;
   }
+  .size-card:hover { border-radius: 46% 54% 37% 63% / 57% 35% 65% 43%; }
   .size-card .name { font-weight: 700; display: block; }
   .size-card .dim { font-size: 0.82rem; color: var(--ink-muted); display: block; margin-top: 0.15rem; }
   .size-card[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+  .size-card[aria-pressed="true"] .dim { color: var(--accent-strong); }
 
   .swatch-grid { display: flex; flex-wrap: wrap; gap: 0.8rem; touch-action: pan-y; }
   .swatch-btn {
-    width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
+    width: 2.6rem; height: 2.6rem; border-radius: 55% 45% 60% 40% / 45% 55% 45% 55%;
+    border: 2px solid transparent; cursor: pointer;
     position: relative; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+    transition: border-radius 0.4s ease;
   }
+  .swatch-btn:hover { border-radius: 45% 55% 40% 60% / 55% 45% 55% 45%; }
   .swatch-btn[aria-pressed="true"] { border-color: var(--ink); }
   .swatch-btn[aria-pressed="true"]::after {
     content: "✓"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -399,6 +470,9 @@
       <a class="nav-link" data-page="commissions" href="#/commissions">Commissions</a>
       <a class="nav-link" data-page="about" href="#/about">About Me</a>
     </nav>
+    <button type="button" class="nav-toggle" data-nav-toggle aria-label="Open menu" aria-expanded="false" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
   </div>
 </header>
 
@@ -519,6 +593,7 @@
     <section class="block" style="padding-top: 0.5rem;">
       <div class="wrap">
         <div class="configurator">
+          <div class="paint-progress" aria-hidden="true"><div class="fill" data-paint-fill></div></div>
 
           <div data-config-step="branch">
             <p class="config-question">Do you already have an idea of what you want?</p>
@@ -645,7 +720,11 @@
     </button>
     <h3 class="lightbox-title" data-lightbox-title></h3>
     <p class="lightbox-desc fill-in" data-lightbox-desc></p>
-    <div class="lightbox-scroll" data-lightbox-scroll></div>
+    <div class="lightbox-carousel">
+      <div class="lightbox-scroll" data-lightbox-scroll></div>
+      <div class="lightbox-fade" data-lightbox-fade aria-hidden="true"></div>
+    </div>
+    <div class="lightbox-dots" data-lightbox-dots hidden></div>
   </div>
 </div>
 
@@ -692,22 +771,22 @@
     whiteNoise: "images/forsale-whitenoise.jpg"
   };
   var DIMS = {
-    header: [1100, 996],
-    aboutPortrait: [900, 1330],
-    aboutStudio: [900, 1363],
-    aboutBike: [900, 1372],
-    brainwaves: [900, 1285],
-    brainwaves2: [900, 1350],
-    brainwaves3: [900, 1239],
-    champagne: [900, 1206],
-    champagne2: [900, 1366],
-    champagne3: [900, 1379],
-    champagne4: [900, 1372],
-    stickynotes: [900, 1388],
-    stickynotes2: [900, 1366],
-    blueVelvet: [900, 1275],
-    redVelvet: [900, 1189],
-    whiteNoise: [900, 1348]
+    header: [900, 1288],
+    aboutPortrait: [900, 1258],
+    aboutStudio: [900, 1290],
+    aboutBike: [900, 1295],
+    brainwaves: [900, 1218],
+    brainwaves2: [900, 1270],
+    brainwaves3: [900, 1135],
+    champagne: [900, 1147],
+    champagne2: [900, 1293],
+    champagne3: [900, 1303],
+    champagne4: [900, 1297],
+    stickynotes: [900, 1310],
+    stickynotes2: [900, 1292],
+    blueVelvet: [900, 1207],
+    redVelvet: [900, 1126],
+    whiteNoise: [900, 1275]
   };
 
   var ART_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2C8 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3-7-7-7z"/><circle cx="12" cy="9" r="2.2"/></svg>';
@@ -776,23 +855,60 @@
 
   var MAIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.6 6.6L21 10l-5 4.3L17.4 21 12 17.3 6.6 21 8 14.3 3 10l6.4-1.4z"/></svg>';
 
+  var lightboxObserver = null;
+
   function openLightbox(item) {
     var lb = document.getElementById('lightbox');
     lb.querySelector('[data-lightbox-title]').textContent = item.title;
     lb.querySelector('[data-lightbox-desc]').textContent = item.description;
-    lb.querySelector('[data-lightbox-scroll]').innerHTML = item.gallery.map(function (key, i) {
+    var scrollEl = lb.querySelector('[data-lightbox-scroll]');
+    scrollEl.innerHTML = item.gallery.map(function (key, i) {
       var d = DIMS[key];
       var badge = i === 0 ? '<span class="lightbox-main-badge">' + MAIN_ICON + 'Main</span>' : '';
       return '<div class="lightbox-img-wrap"><img src="' + IMG[key] + '" alt="' + item.title + '" loading="lazy" width="' + d[0] + '" height="' + d[1] + '">' + badge + '</div>';
     }).join('');
+    scrollEl.scrollLeft = 0;
+
+    var fadeEl = lb.querySelector('[data-lightbox-fade]');
+    var dotsEl = lb.querySelector('[data-lightbox-dots]');
+    var multi = item.gallery.length > 1;
+    dotsEl.hidden = !multi;
+    fadeEl.style.display = multi ? '' : 'none';
+    dotsEl.innerHTML = multi ? item.gallery.map(function (_, i) {
+      return '<span class="lightbox-dot' + (i === 0 ? ' is-active' : '') + '"></span>';
+    }).join('') : '';
+
+    if (lightboxObserver) { lightboxObserver.disconnect(); lightboxObserver = null; }
+    if (multi) {
+      var dots = dotsEl.querySelectorAll('.lightbox-dot');
+      lightboxObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var idx = Array.prototype.indexOf.call(scrollEl.children, entry.target);
+            dots.forEach(function (d, i) { d.classList.toggle('is-active', i === idx); });
+          }
+        });
+      }, { root: scrollEl, threshold: 0.6 });
+      Array.prototype.forEach.call(scrollEl.children, function (child) { lightboxObserver.observe(child); });
+      fadeEl.classList.remove('is-hidden');
+    }
+
     lb.hidden = false;
   }
 
   function closeLightbox() {
     document.getElementById('lightbox').hidden = true;
+    if (lightboxObserver) { lightboxObserver.disconnect(); lightboxObserver = null; }
   }
 
   function setupLightbox() {
+    var scrollEl = document.querySelector('[data-lightbox-scroll]');
+    var fadeEl = document.querySelector('[data-lightbox-fade]');
+    scrollEl.addEventListener('scroll', function () {
+      var atEnd = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 4;
+      fadeEl.classList.toggle('is-hidden', atEnd);
+    }, { passive: true });
+
     document.addEventListener('click', function (e) {
       var card = e.target.closest('.art-card.is-sold');
       if (card) {
@@ -817,7 +933,7 @@
 
   function fillSteps() {
     var html = STEPS.map(function (s, i) {
-      return '<div class="step-card"><div class="step-num">' + (i + 1) + '</div><h3>' + s.title + '</h3><p>' + s.text + '</p></div>';
+      return '<div class="step-card"><div class="step-blob">' + (i + 1) + '</div><h3>' + s.title + '</h3><p>' + s.text + '</p></div>';
     }).join("");
     setHTML('[data-steps]', html);
   }
@@ -908,6 +1024,14 @@
     });
   }
 
+  function setProgress(pct, colorVar) {
+    var fill = document.querySelector('[data-paint-fill]');
+    var configurator = document.querySelector('.configurator');
+    if (!fill || !configurator) return;
+    fill.style.width = pct + '%';
+    configurator.style.setProperty('--wash', 'var(' + colorVar + ')');
+  }
+
   function setupConfigurator() {
     var branchButtons = document.querySelectorAll('[data-branch-choice]');
     var panelNo = document.querySelector('[data-panel="no"]');
@@ -921,6 +1045,8 @@
         var choice = btn.getAttribute('data-branch-choice');
         panelNo.hidden = choice !== 'no';
         panelYes.hidden = choice !== 'yes';
+        if (choice === 'no') { setProgress(50, '--s-plum'); }
+        else { setProgress(22, '--s-vermilion'); }
         updateSubmitState();
       });
     });
@@ -930,6 +1056,7 @@
       panelNo.hidden = true;
       panelYes.hidden = true;
       confirm.hidden = false;
+      setProgress(100, '--s-forest');
     }
 
     [panelNo, panelYes].forEach(function (form) {
@@ -955,6 +1082,7 @@
         el.hidden = el.getAttribute('data-substep') !== 'size';
       });
       updateSubmitState();
+      setProgress(6, '--s-vermilion');
     });
 
     updateSubmitState();
@@ -977,7 +1105,7 @@
     }
 
     document.querySelector('[data-size-grid]').addEventListener('click', function (e) {
-      if (e.target.closest('.size-card')) reveal('concept', true);
+      if (e.target.closest('.size-card')) { reveal('concept', true); setProgress(42, '--s-navy'); }
     });
     var conceptField = document.getElementById('yes-concept');
     function revealColorsAndDetails() {
@@ -985,6 +1113,7 @@
       // colours and details appear together so picking multiple colours never jumps the page
       reveal('colors', true);
       reveal('details', false);
+      setProgress(70, '--s-skyteal');
     }
     conceptField.addEventListener('blur', revealColorsAndDetails);
     conceptField.addEventListener('keydown', function (e) {
@@ -993,6 +1122,48 @@
         revealColorsAndDetails();
       }
     });
+  }
+
+  function setupNav() {
+    var headerEl = document.querySelector('header.site');
+    var nav = document.querySelector('.site-nav');
+    var toggle = document.querySelector('[data-nav-toggle]');
+
+    function closeMenu() {
+      nav.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    function checkOverflow() {
+      headerEl.classList.remove('is-compact');
+      var overflowing = nav.scrollWidth > nav.clientWidth + 1;
+      headerEl.classList.toggle('is-compact', overflowing);
+      toggle.hidden = !overflowing;
+      if (!overflowing) closeMenu();
+    }
+
+    toggle.addEventListener('click', function () {
+      var open = nav.classList.toggle('is-open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('.nav-link')) closeMenu();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (headerEl.classList.contains('is-compact') && nav.classList.contains('is-open') &&
+        !e.target.closest('.site-nav') && !e.target.closest('[data-nav-toggle]')) {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeMenu();
+    });
+
+    window.addEventListener('resize', checkOverflow);
+    checkOverflow();
   }
 
   var PAGES = ['home', 'for-sale', 'sold', 'commissions', 'about', 'request'];
@@ -1100,8 +1271,10 @@
   setupProgressiveReveal();
   setupLightbox();
   setupScrollAccent();
+  setupNav();
   routeFromHash();
 })();
 </script>
+
 </body>
 </html>
