@@ -220,7 +220,7 @@
   }
   .hero-brand { font-size: clamp(2.2rem, 7vw, 3.2rem); }
   .hero-statement {
-    font-family: var(--font-display); font-weight: 700; font-size: clamp(2.8rem, 8.4vw, 4rem);
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(1.87rem, 5.6vw, 2.67rem);
     line-height: 2.2; max-width: 34rem; text-wrap: balance;
   }
   .hero-caption { font-size: 0.95rem; color: var(--ink-muted); max-width: 30rem; }
@@ -230,9 +230,19 @@
   @media (min-width: 640px) { .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); } }
   @media (min-width: 640px) and (max-width: 859px) { .card-grid.cols-3 { grid-template-columns: repeat(2, 1fr); } }
 
-  .art-card { display: flex; flex-direction: column; gap: 0.7rem; }
-  .art-card-media { position: relative; }
-  .art-card-media img { width: 100%; height: auto; display: block; }
+  .art-card { display: flex; flex-direction: column; gap: 0.55rem; }
+  .art-card-media { position: relative; border-radius: var(--radius-sm); overflow: hidden; }
+  .card-carousel-scroll {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .card-carousel-scroll::-webkit-scrollbar { display: none; }
+  .card-slide { flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: 4 / 5; }
+  .card-slide img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; display: block; }
+  .card-dots { display: flex; justify-content: center; gap: 0.35rem; margin-top: 0.1rem; }
+  .card-dots[hidden] { display: none; }
+  .card-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--line-strong); transition: background-color 0.2s ease, transform 0.2s ease; }
+  .card-dot.is-active { background: var(--accent-strong); transform: scale(1.3); }
   .art-card h3 { font-size: 1.05rem; margin-bottom: 0.15rem; }
   .art-card .meta { font-size: 0.86rem; color: var(--ink-muted); }
   .price-tag {
@@ -242,17 +252,8 @@
   .sold-ribbon {
     position: absolute; top: 0.8rem; right: 0.8rem; background: var(--ink); color: var(--bg);
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 0.35rem 0.65rem; border-radius: 999px;
+    padding: 0.35rem 0.65rem; border-radius: 999px; z-index: 1; pointer-events: none;
   }
-  .art-card.is-sold { cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease; border-radius: var(--radius-sm); }
-  .art-card.is-sold:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.14); }
-  .art-card.is-sold:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
-  .sold-view-hint {
-    position: absolute; left: 0.8rem; bottom: 0.8rem; background: rgba(255,255,255,0.92); color: var(--ink);
-    font-size: 0.72rem; font-weight: 600; padding: 0.35rem 0.65rem; border-radius: 999px;
-    display: flex; align-items: center; gap: 0.35rem;
-  }
-  .sold-view-hint svg { width: 13px; height: 13px; }
 
   .masonry { columns: 1; column-gap: 1.4rem; }
   @media (min-width: 640px) { .masonry { columns: 2; } }
@@ -307,61 +308,6 @@
     color: var(--ink-muted); border-bottom: 1px dashed var(--line-strong); font-style: italic;
   }
 
-  /* ---------- Lightbox ---------- */
-  .lightbox {
-    position: fixed; inset: 0; z-index: 300; background: rgba(20, 16, 10, 0.86);
-    display: flex; align-items: center; justify-content: center; padding: 1.2rem;
-  }
-  .lightbox[hidden] { display: none; }
-  .lightbox-panel {
-    background: var(--surface); width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto;
-    border-radius: var(--radius); padding: clamp(1.2rem, 4vw, 1.8rem); position: relative;
-    animation: lightboxIn 220ms ease-out;
-  }
-  @keyframes lightboxIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-  .lightbox-close {
-    position: absolute; top: 1rem; right: 1rem; width: 2.2rem; height: 2.2rem; border-radius: 50%;
-    border: 1px solid var(--line-strong); background: var(--surface); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .lightbox-close:hover { background: var(--bg-soft); }
-  .lightbox-title { font-size: 1.4rem; padding-right: 2.4rem; }
-  .lightbox-desc { color: var(--ink-muted); margin-top: 0.5rem; }
-  .lightbox-carousel { position: relative; margin-top: 1.2rem; }
-  .lightbox-scroll {
-    display: flex; flex-direction: row; gap: 0.7rem;
-    overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch; scroll-padding-inline: 0.2rem;
-    padding-bottom: 0.4rem;
-  }
-  .lightbox-scroll::-webkit-scrollbar { height: 6px; }
-  .lightbox-scroll::-webkit-scrollbar-track { background: transparent; }
-  .lightbox-scroll::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; }
-  .lightbox-scroll .lightbox-img-wrap {
-    position: relative; flex: 0 0 82%; scroll-snap-align: center;
-    aspect-ratio: 4 / 5; border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-soft);
-  }
-  @media (min-width: 640px) { .lightbox-scroll .lightbox-img-wrap { flex-basis: 62%; } }
-  .lightbox-scroll img {
-    width: 100%; height: 100%; object-fit: cover; object-position: center 18%;
-    border-radius: var(--radius-sm); display: block;
-  }
-  .lightbox-fade {
-    position: absolute; top: 0; right: 0; bottom: 0.4rem; width: 2.4rem;
-    background: linear-gradient(to right, transparent, var(--surface));
-    pointer-events: none; opacity: 1; transition: opacity 0.2s ease;
-  }
-  .lightbox-fade.is-hidden { opacity: 0; }
-  .lightbox-dots { display: flex; justify-content: center; gap: 0.4rem; margin-top: 0.7rem; }
-  .lightbox-dots[hidden] { display: none; }
-  .lightbox-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); transition: background-color 0.2s ease, transform 0.2s ease; }
-  .lightbox-dot.is-active { background: var(--accent-strong); transform: scale(1.3); }
-  .lightbox-main-badge {
-    position: absolute; left: 0.7rem; top: 0.7rem; background: rgba(255, 255, 255, 0.92); color: var(--ink);
-    font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 999px;
-    display: flex; align-items: center; gap: 0.3rem;
-  }
-  .lightbox-main-badge svg { width: 12px; height: 12px; }
 
   /* ---------- Forms ---------- */
   .field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.1rem; }
@@ -713,21 +659,6 @@
 
 </main>
 
-<div class="lightbox" id="lightbox" hidden>
-  <div class="lightbox-panel">
-    <button type="button" class="lightbox-close" data-lightbox-close aria-label="Close">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5l14 14M19 5L5 19"/></svg>
-    </button>
-    <h3 class="lightbox-title" data-lightbox-title></h3>
-    <p class="lightbox-desc fill-in" data-lightbox-desc></p>
-    <div class="lightbox-carousel">
-      <div class="lightbox-scroll" data-lightbox-scroll></div>
-      <div class="lightbox-fade" data-lightbox-fade aria-hidden="true"></div>
-    </div>
-    <div class="lightbox-dots" data-lightbox-dots hidden></div>
-  </div>
-</div>
-
 <footer class="site-footer">
   <div class="wrap footer-simple">
     <span class="brand-word">thous&bull;art</span>
@@ -768,7 +699,12 @@
     stickynotes2: "images/stickynotes2.jpg",
     blueVelvet: "images/forsale-bluevelvet.jpg",
     redVelvet: "images/forsale-redvelvet.jpg",
-    whiteNoise: "images/forsale-whitenoise.jpg"
+    redVelvet2: "images/forsale-redvelvet2.jpg",
+    redVelvet3: "images/forsale-redvelvet3.jpg",
+    redVelvet4: "images/forsale-redvelvet4.jpg",
+    whiteNoise: "images/forsale-whitenoise.jpg",
+    whiteNoise2: "images/forsale-whitenoise2.jpg",
+    whiteNoise3: "images/forsale-whitenoise3.jpg"
   };
   var DIMS = {
     header: [900, 1288],
@@ -786,30 +722,32 @@
     stickynotes2: [900, 1292],
     blueVelvet: [900, 1207],
     redVelvet: [900, 1126],
-    whiteNoise: [900, 1275]
+    redVelvet2: [900, 1156],
+    redVelvet3: [900, 1165],
+    redVelvet4: [900, 1131],
+    whiteNoise: [900, 1275],
+    whiteNoise2: [900, 1301],
+    whiteNoise3: [900, 1359]
   };
 
-  var ART_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2C8 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3-7-7-7z"/><circle cx="12" cy="9" r="2.2"/></svg>';
-  var PAINT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 100 18c1.1 0 2-.7 2-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H16a5 5 0 005-5c0-4.4-4-7-9-7z"/><circle cx="8.2" cy="10.5" r="1"/><circle cx="12" cy="8" r="1"/><circle cx="15.8" cy="10.5" r="1"/></svg>';
-
   var FOR_SALE = [
-    { title: "Blue Velvet", photo: "blueVelvet" },
-    { title: "Red Velvet", photo: "redVelvet" },
-    { title: "White Noise", photo: "whiteNoise" }
+    { title: "Blue Velvet", gallery: ["blueVelvet"] },
+    { title: "Red Velvet", gallery: ["redVelvet", "redVelvet2", "redVelvet3", "redVelvet4"] },
+    { title: "White Noise", gallery: ["whiteNoise", "whiteNoise2", "whiteNoise3"] }
   ];
   var SOLD = [
     {
-      title: "Brainwaves", photo: "brainwaves",
+      title: "Brainwaves",
       gallery: ["brainwaves", "brainwaves2", "brainwaves3"],
       description: "Add a short story about this piece: where it hung, who it was for, what inspired it."
     },
     {
-      title: "Champagne & Vongole", photo: "champagne",
+      title: "Champagne & Vongole",
       gallery: ["champagne", "champagne2", "champagne3", "champagne4"],
       description: "Add a short story about this piece: where it hung, who it was for, what inspired it."
     },
     {
-      title: "Colorful Sticky Notes", photo: "stickynotes",
+      title: "Colorful Sticky Notes",
       gallery: ["stickynotes", "stickynotes2"],
       description: "Add a short story about this piece: where it hung, who it was for, what inspired it."
     }
@@ -826,19 +764,22 @@
     { name: "Something else", dim: "I'll specify" }
   ];
 
-  var VIEW_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>';
-
-  function artCard(item, sold, index) {
-    var dim = item.photo ? DIMS[item.photo] : null;
-    var media = item.photo
-      ? '<img src="' + IMG[item.photo] + '" alt="' + item.title + '" loading="lazy" width="' + dim[0] + '" height="' + dim[1] + '">'
-      : '<div class="ph ' + item.ratio + '">' + ART_ICON + '<span class="ph-label">Photo coming soon</span></div>';
+  function artCard(item, sold) {
+    var slides = item.gallery.map(function (key) {
+      var d = DIMS[key];
+      return '<div class="card-slide"><img src="' + IMG[key] + '" alt="' + item.title + '" loading="lazy" width="' + d[0] + '" height="' + d[1] + '"></div>';
+    }).join('');
+    var multi = item.gallery.length > 1;
+    var dots = multi
+      ? '<div class="card-dots">' + item.gallery.map(function (_, i) {
+          return '<span class="card-dot' + (i === 0 ? ' is-active' : '') + '"></span>';
+        }).join('') + '</div>'
+      : '<div class="card-dots" hidden></div>';
     var metaHtml = item.meta ? '<p class="meta">' + item.meta + '</p>' : '';
-    var soldAttrs = sold ? ' tabindex="0" role="button" aria-haspopup="dialog" data-sold-index="' + index + '"' : '';
-    var viewHint = sold ? '<span class="sold-view-hint">' + VIEW_ICON + 'View</span>' : '';
-    return '<div class="art-card' + (sold ? ' is-sold' : '') + '"' + soldAttrs + '>' +
-      '<div class="art-card-media">' + media + viewHint +
+    return '<div class="art-card">' +
+      '<div class="art-card-media"><div class="card-carousel-scroll" data-card-carousel>' + slides + '</div>' +
       (sold ? '<span class="sold-ribbon">Sold</span>' : '') + '</div>' +
+      dots +
       '<h3>' + item.title + '</h3>' +
       metaHtml +
       (sold ? '' : '<span class="price-tag">Price on request</span>') +
@@ -848,40 +789,18 @@
   function fillGalleries() {
     var previewFS = FOR_SALE.slice(0, 3), previewSold = SOLD.slice(0, 3);
     setHTML('[data-gallery="for-sale-preview"]', previewFS.map(function (i) { return artCard(i, false); }).join(""));
-    setHTML('[data-gallery="sold-preview"]', previewSold.map(function (i, idx) { return artCard(i, true, idx); }).join(""));
+    setHTML('[data-gallery="sold-preview"]', previewSold.map(function (i) { return artCard(i, true); }).join(""));
     setHTML('[data-gallery="for-sale-full"]', FOR_SALE.map(function (i) { return artCard(i, false); }).join(""));
-    setHTML('[data-gallery="sold-full"]', SOLD.map(function (i, idx) { return artCard(i, true, idx); }).join(""));
+    setHTML('[data-gallery="sold-full"]', SOLD.map(function (i) { return artCard(i, true); }).join(""));
+    setupCardCarousels();
   }
 
-  var MAIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.6 6.6L21 10l-5 4.3L17.4 21 12 17.3 6.6 21 8 14.3 3 10l6.4-1.4z"/></svg>';
-
-  var lightboxObserver = null;
-
-  function openLightbox(item) {
-    var lb = document.getElementById('lightbox');
-    lb.querySelector('[data-lightbox-title]').textContent = item.title;
-    lb.querySelector('[data-lightbox-desc]').textContent = item.description;
-    var scrollEl = lb.querySelector('[data-lightbox-scroll]');
-    scrollEl.innerHTML = item.gallery.map(function (key, i) {
-      var d = DIMS[key];
-      var badge = i === 0 ? '<span class="lightbox-main-badge">' + MAIN_ICON + 'Main</span>' : '';
-      return '<div class="lightbox-img-wrap"><img src="' + IMG[key] + '" alt="' + item.title + '" loading="lazy" width="' + d[0] + '" height="' + d[1] + '">' + badge + '</div>';
-    }).join('');
-    scrollEl.scrollLeft = 0;
-
-    var fadeEl = lb.querySelector('[data-lightbox-fade]');
-    var dotsEl = lb.querySelector('[data-lightbox-dots]');
-    var multi = item.gallery.length > 1;
-    dotsEl.hidden = !multi;
-    fadeEl.style.display = multi ? '' : 'none';
-    dotsEl.innerHTML = multi ? item.gallery.map(function (_, i) {
-      return '<span class="lightbox-dot' + (i === 0 ? ' is-active' : '') + '"></span>';
-    }).join('') : '';
-
-    if (lightboxObserver) { lightboxObserver.disconnect(); lightboxObserver = null; }
-    if (multi) {
-      var dots = dotsEl.querySelectorAll('.lightbox-dot');
-      lightboxObserver = new IntersectionObserver(function (entries) {
+  function setupCardCarousels() {
+    document.querySelectorAll('[data-card-carousel]').forEach(function (scrollEl) {
+      var dotsEl = scrollEl.closest('.art-card').querySelector('.card-dots');
+      if (!dotsEl || dotsEl.hidden) return;
+      var dots = dotsEl.querySelectorAll('.card-dot');
+      var observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
             var idx = Array.prototype.indexOf.call(scrollEl.children, entry.target);
@@ -889,41 +808,7 @@
           }
         });
       }, { root: scrollEl, threshold: 0.6 });
-      Array.prototype.forEach.call(scrollEl.children, function (child) { lightboxObserver.observe(child); });
-      fadeEl.classList.remove('is-hidden');
-    }
-
-    lb.hidden = false;
-  }
-
-  function closeLightbox() {
-    document.getElementById('lightbox').hidden = true;
-    if (lightboxObserver) { lightboxObserver.disconnect(); lightboxObserver = null; }
-  }
-
-  function setupLightbox() {
-    var scrollEl = document.querySelector('[data-lightbox-scroll]');
-    var fadeEl = document.querySelector('[data-lightbox-fade]');
-    scrollEl.addEventListener('scroll', function () {
-      var atEnd = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 4;
-      fadeEl.classList.toggle('is-hidden', atEnd);
-    }, { passive: true });
-
-    document.addEventListener('click', function (e) {
-      var card = e.target.closest('.art-card.is-sold');
-      if (card) {
-        openLightbox(SOLD[parseInt(card.getAttribute('data-sold-index'), 10)]);
-        return;
-      }
-      if (e.target.closest('[data-lightbox-close]')) { closeLightbox(); return; }
-      if (e.target.id === 'lightbox') { closeLightbox(); }
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closeLightbox(); return; }
-      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('is-sold')) {
-        e.preventDefault();
-        openLightbox(SOLD[parseInt(e.target.getAttribute('data-sold-index'), 10)]);
-      }
+      Array.prototype.forEach.call(scrollEl.children, function (slide) { observer.observe(slide); });
     });
   }
 
@@ -1269,7 +1154,6 @@
   setupSwatches();
   setupConfigurator();
   setupProgressiveReveal();
-  setupLightbox();
   setupScrollAccent();
   setupNav();
   routeFromHash();
